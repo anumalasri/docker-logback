@@ -1,0 +1,7 @@
+version: "2"
+services:
+  docker-logback:
+    build: .
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      EUREKAURL: http://localhost:8761/eureka/
