@@ -1,0 +1,54 @@
+<configuration debug="true">
+
+	<springProperty name="springAppName" source="spring.application.name" defaultValue=""/>
+    
+	<property name="CONSOLE_LOG_PATTERN"  scope="context" value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) [${springAppName}] %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
+    	
+    <include resource="org/springframework/boot/logging/logback/defaults.xml" />
+    
+    
+    <springProfile name="local,dev">
+    	<include resource="org/springframework/boot/logging/logback/console-appender.xml" />    
+    </springProfile>
+    
+    <springProfile name="int,qa,uat,prod">
+	    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		    <layout class="ch.qos.logback.classic.PatternLayout">
+				<Pattern>
+					%d{yyyy-MM-dd HH:mm:ss.SSS}|severity=%level|pid=${PID:-}|service=${springAppName}|gsspTrxId=%X{gsspTrxId:-}|trace=%X{X-B3-TraceId}|span=%X{X-B3-SpanId}|exportable=%mdc{X-Span-Export}|thread=%t|class=%c{40}|smuserId=%X{smuserId:-}|customerId=%X{customerId:-}|message=%replace(%msg){'\n', '\t'}%n
+				</Pattern>
+		    </layout>
+		</appender>
+	</springProfile>
+	
+    <appender name="Async-Console-Appender" class="ch.qos.logback.classic.AsyncAppender">
+    	<queueSize>512</queueSize>
+    	<appender-ref ref="CONSOLE"/>
+	</appender>
+	
+	
+    <springProfile name="local,dev,int,qa,uat">
+        <logger name="com.metlife" level="INFO" additivity="false">
+            <appender-ref ref="Async-Console-Appender" />
+        </logger>
+		<logger name="groovy" level="DEBUG" additivity="false">
+            <appender-ref ref="Async-Console-Appender" />
+        </logger>
+		<logger name="org.springframework" level="WARN" additivity="false">
+            <appender-ref ref="Async-Console-Appender" />
+        </logger>
+		<root level="WARN">
+			<appender-ref ref="Async-Console-Appender" />
+		</root>
+    </springProfile>
+    <springProfile name="production">
+	    <logger name="com.metlife" level="WARN" additivity="false">
+	            <appender-ref ref="Async-Console-Appender" />
+	    </logger>	
+		<root level="ERROR">
+			<appender-ref ref="Async-Console-Appender" />
+		</root>
+    </springProfile>
+    
+   
+</configuration>
